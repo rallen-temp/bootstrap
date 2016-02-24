@@ -1,0 +1,234 @@
+# For advice on how to change settings please see
+# http://dev.mysql.com/doc/refman/5.6/en/server-configuration-defaults.html
+[client]
+max_allowed_packet = 500M
+
+[mysqldump]
+quick
+quote-names
+max_allowed_packet = 500M
+
+[mysqld]
+open_files_limit = 10000
+
+
+#max_tmp_tables=32
+
+# Drupal has been UTF8 for a long time, so let's state that explicitly.
+character-set-server = utf8
+collation-server = utf8_general_ci
+
+# @Vekseid - there's no serious reason to have a long interactive timeout. If you
+# are low on connections, you shouldn't set this higher than wait_timeout
+# @Sudeepg suggests 400. @trainingcity suggests 100.  Original 25
+interactive_timeout = 400
+
+# @Vekseid believes that the default value is far too high. If you
+# use persistent connections, even a timeout of 300 may be too high.
+# @xamount suggests 100 and blamed this on over allocating memory to mysql.
+# @Etanol suggests raising this to 3600. @Sudeepg suggests 300 & 600. @trainingcity suggests 100.
+wait_timeout = 3600
+
+# @Etanol suggests 4. @trainingcity suggests 10.
+connect_timeout = 10
+
+# Need adjustment if many connections/sec
+# Percona suggests 2048 is reasonable value. Original 100.
+back_log = 2048
+
+# The number of open tables for all threads. Increasing this value
+# increases the number of file descriptors that mysqld requires.
+# Therefore you have to make sure to set the amount of open files
+# allowed to at least 4096 in the variable "open-files-limit" in
+# section [mysqld_safe]
+# @Etanol suggests using total number of database tables +20%
+# (ALL databases) if you just have a single Drupal database 100-150
+# will be enough. @abramo & @Jose suggests 4096.
+#table_cache = 4096
+
+# The next two lines replace the basic table_cache value as of MySQL
+# 5.1. table_definition_cache should be big enough for every table
+# in your database, plus temporary tables, and table_open_cache
+# should be a reflection of how many of these will be open in a live
+# connection at once - it will likely exceed your definition cache.
+# It doesn't hurt to set these to large values. They don't take a lot
+# of RAM and it's better than hitting the limit.
+# @Simon suggests table_definition_cache could be 2048.
+# @Original of table_open_cache is 4096. @Vekseid suggested 16384.
+table_definition_cache = 4096
+table_open_cache = 16384
+
+# Remove leading # and set to the amount of RAM for the most important data
+# cache in MySQL. Start at 70% of total RAM for dedicated server, else 10%.
+# innodb_buffer_pool_size = 128M
+
+# Remove leading # to turn on a very important data integrity option: logging
+# changes to the binary log between backups.
+# log_bin
+
+# These are commonly set, remove the # and set as required.
+# basedir = .....
+# datadir = .....
+# port = .....
+# server_id = .....
+# socket = .....
+
+# Remove leading # to set options mainly useful for reporting servers.
+# The server defaults are faster for transactions and fast SELECTs.
+# Adjust sizes as needed, experiment to find the optimal values.
+# join_buffer_size = 128M
+# sort_buffer_size = 2M
+# read_rnd_buffer_size = 2M 
+max_allowed_packet = 500M
+
+
+sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+
+
+# CACHES AND LIMITS #
+
+# tmp_table_size & max_heap_table_size are best set to the same size, because the size
+# of temporary tables is limited by the lower of the two.
+# @Vekseid has not found any benefit in increasing the value past tmp_table_size
+# default of default of 32M.
+# Maximum size for internal (in-memory) temporary tables. If a table
+# grows larger than this value, it is automatically converted to disk
+# based table This limitation is for a single table. There can be many
+# of them.
+# @Ethanol suggests 64M or even 128M. @Sudeepg suggests 256M.  Original 16M
+tmp_table_size = 64M
+max_heap_table_size = 64M
+
+# 1 = default on, 0 = no query_chache, 2 = use SQL_CACHE switch in SQL-statement
+query_cache_type = 1
+
+# This is the total available space for query_cache.
+# Query cache is used to cache SELECT results and later return them
+# without actual executing the same query once again. Having the query
+# cache enabled may result in significant speed improvements, if your
+# have a lot of identical queries and rarely changing tables. See the
+# "Qcache_lowmem_prunes" status variable to check if the current value
+# is high enough for your load.
+# Note: In case your tables change very often or if your queries are
+# textually different every time, the query cache may result in a
+# slowdown instead of a performance improvement.
+# Enable query cache only if it is tested to provide significant gains
+# Often causes stalls and contention
+# Do not set over 512MB
+# @ RickJames says to view your QC performance, SHOW GLOBAL STATUS LIKE
+# 'Qc%'; then compute the read hit rate: Qcache_hits / Qcache_inserts If
+# it is over, say, 5, the QC might be worth keeping.
+# @quaoar suggested 1GB. @Sudeepg suggests 4M & 32M. @Simon sugests 64M.
+# @Vekseid suggests 256K. Percona suggests 0.
+query_cache_size = 4M
+
+# Only cache result sets that are smaller than this limit. This is to
+# protect the query cache of a very large result set overwriting all
+# other query results.
+# @Ethanol suggest increasing value if you experience long queries selecting a lot of data.
+# @quaoar suggested 256K. @Sudeepg suggests 2M & 6M. @Vekseid suggests 256K.
+# @Simon suggests 2M. @trainingcity suggested 8M. Original 1M.
+query_cache_limit = 256K
+
+# @abramo suggests 32M but @ethanol suggests playing with this
+# "until you get 80% cache filled after mysql server has been running for 24h+.
+# If this is a dedicated database server you can go nuts with this up to 70% of RAM,
+# but if there is no queries to be cached this will be pretty useless. Better stay
+# under 512M and use rest for memcached".
+# @Vekseid  suggested 4k. Original value 16M.
+query_cache_min_res_unit = 1K
+
+
+
+# In theory, you want this to encompass your entire database. In
+# practice, you only have so much RAM available. Right now @Vekseid 'need'
+# 20 gigabytes in the buffer pool I only have 12.
+# Fortunately, as long as you can store a big enough chunk that it
+# gets a 99% hit rate, you will be fine.
+# @Sudeepg suggests 6G. @Jose suggests 1024M. Original 384M. @Vekseid suggests 8192M.
+# Percona suggests 4G but obviously this depends on RAM.
+# 70-80% of memory is a safe bet
+# Roy suggests using SHOW ENGINE INNODB STATUS to gove some essential
+# information about the buffer pool(s), including free buffers and more
+# importantly the buffer pool hit rate. In my opinion, you generally want
+# to keep the hit ratio close to 99%.
+# IMPORTANT
+# http://www.mysqlperformanceblog.com/2007/11/03/choosing-innodb_buffer_po...
+innodb_buffer_pool_size = 1G
+
+
+# O_DIRECT bypasses the operating system's handling of data. This
+# can drastically improve how well your system handles large amounts
+# of RAM by removing double buffers (once in InnoDB's cache, again
+# in the filesystem's cache), at a slight cost to reliability.
+# This appears to be more dramatic the more RAM you have.
+# Should reduce swap pressure and in most cases improves performance.
+#  Be careful if you do not have battery backed up RAID cache as when write IO may suffer.
+innodb_flush_method = O_DIRECT
+
+
+# Buffer for log files not only reduce writes but help contention.
+# No reason to make the buffers too large, 4M is good for most cases
+# unless you’re piping large blobs to Innodb in this case increase it a bit.
+# Percona says good values 4MB-128MB.
+# @Vekseid suggests 2M for innodb_log_buffer_size & innodb_additional_mem_pool_size
+# Zaitsev suggests 4M for innodb_log_buffer_size.
+innodb_log_buffer_size = 4M
+
+# This causes a crash on 5.7.
+#innodb_additional_mem_pool_size = 4M
+
+
+# @Zaitsev  says even with current (2007) Innodb Scalability Fixes having limited concurrency helps.
+# The actual number may be higher or lower depending on your application and
+# default which is 8 is decent start.
+# @Vekseid suggests for web purposes on Intel architectures
+# up to four times the number of cores.
+# @RolandoMySQLDBA says to set this to 0 in order to alert InnoDB
+# Storage Engine to find the best number of threads for the environment
+# it is running in.
+innodb_thread_concurrency = 0
+
+# Uncommitted transactions left in ibdata1 get committed upon
+# shutdown rather than upon MySQL's crash recovery during startup.
+#  If the value is 0, InnoDB does a full purge and an insert buffer merge before a shutdown.
+# These operations can take minutes, or even hours in extreme cases. Should be 0 or 1.
+innodb_fast_shutdown = 0
+
+# NETWORKING #
+# If you have replication setup, on a separate interface, bind MySQL to
+# a socket and the address for that interface. Sockets are faster than TCP connections.
+# Otherwise just point to the localhost.
+#bind-address       = 127.0.0.1
+
+# There's no reason to waste time resolving domain names.
+# Faster & Safer. Do not use host names in GRANTs.
+# skip-name-resolve
+
+
+# LOGGING #
+
+# Error log.
+log_error = /usr/local/var/error.log
+
+# Set up the slow query log.
+long_query_time = 5
+slow_query_log = /usr/local/var/slow.log
+
+# In order to keep your sanity, you should only use this when
+# developing software. It would be nice if developers of community
+# software did track this more often.
+# log-queries-not-using-indexes
+
+
+# MyISAM tables require up to 2 file handlers
+# Each connection is file handler too
+# Percona suggests 65535. Original 8196.
+#
+# Default on Homebrew MySQL:
+# open_files_limit = 256
+# May be related:
+# Error: "Can't open file .frm errno: 24 - Too many open files"
+# open_files_limit = 2000
+# Note: setting the open_files_imit is useless.
+

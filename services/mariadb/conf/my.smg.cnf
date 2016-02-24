@@ -1,0 +1,44 @@
+# For advice on how to change settings please see
+# http://dev.mysql.com/doc/refman/5.6/en/server-configuration-defaults.html
+[client]
+max_allowed_packet = 500M
+
+[mysqldump]
+quick
+quote-names
+max_allowed_packet = 500M
+
+[[mysqld]]
+
+# Prefix all logs so everyone knows who created them.
+log-basename=spanfellervm
+
+# General log.
+general-log
+log-output=/usr/local/var/general.log
+
+# Error log.
+log_error = /usr/local/var/error.log
+
+# Set up the slow query log.
+long_query_time = 5
+slow_query_log = /usr/local/var/slow.log
+
+# Drupal performance tuning.
+open_files_limit = 10000
+max_allowed_packet = 500M
+
+# Drupal has been UTF8 for a long time, so let's state that explicitly.
+character-set-server = utf8
+collation-server = utf8_general_ci
+
+# NETWORKING #
+# If you have replication setup, on a separate interface, bind MySQL to
+# a socket and the address for that interface. Sockets are faster than TCP connections.
+# Otherwise just point to the localhost.
+#bind-address       = 127.0.0.1
+bind-address = 0.0.0.0
+
+# There's no reason to waste time resolving domain names.
+# Faster & Safer. Do not use host names in GRANTs.
+# skip-name-resolve

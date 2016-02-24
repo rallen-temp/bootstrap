@@ -1,0 +1,62 @@
+[client]
+port		= 3306
+socket		= /Applications/XAMPP/xamppfiles/var/mysql/mysql.sock
+
+[mysqld]
+user = mysql
+port=3306
+socket		= /Applications/XAMPP/xamppfiles/var/mysql/mysql.sock
+skip-external-locking
+
+max_allowed_packet = 256M
+key_buffer_size = 384M
+table_open_cache = 512
+sort_buffer_size = 2M
+read_buffer_size = 2M
+read_rnd_buffer_size = 8M
+myisam_sort_buffer_size = 64M
+net_buffer_length = 8K
+
+thread_cache_size = 8
+query_cache_size = 32M
+thread_concurrency = 4
+
+server-id	= 1
+
+plugin_dir = /Applications/XAMPP/xamppfiles/lib/mysql/plugin/
+tmpdir = /Applications/XAMPP/xamppfiles/temp/mysql
+innodb_data_home_dir = /Applications/XAMPP/xamppfiles/var/mysql/
+innodb_data_file_path = ibdata1:10M:autoextend
+innodb_log_group_home_dir = /Applications/XAMPP/xamppfiles/var/mysql/
+
+innodb_buffer_pool_size = 16M
+innodb_log_file_size = 256M
+innodb_log_buffer_size = 128M
+innodb_flush_log_at_trx_commit = 1
+innodb_lock_wait_timeout = 50
+
+[mysqldump]
+quick
+max_allowed_packet = 256M
+
+[mysql]
+no-auto-rehash
+# Remove the next comment character if you are not familiar with SQL
+#safe-updates
+
+[isamchk]
+key_buffer = 20M
+sort_buffer_size = 20M
+read_buffer = 2M
+write_buffer = 2M
+
+[myisamchk]
+key_buffer = 20M
+sort_buffer_size = 20M
+read_buffer = 2M
+write_buffer = 2M
+
+[mysqlhotcopy]
+interactive-timeout
+
+!include /Applications/XAMPP/xamppfiles/mysql/my.cnf
