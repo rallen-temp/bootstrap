@@ -20,8 +20,13 @@ if [ $(brew --version &> /dev/null; echo $?) -ne 0 ]; then
   echo "Install Homebrew."
   /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 else
-  echo "Homebrew found."
+  BREW_VERSION=$(brew --version)
+  WHICH_BREW=$(which brew)
+  echo "Homebrew found in ${WHICH_BREW}:"
+  echo "${BREW_VERSION}"
 fi
+
+echo
 
 if [ $(salt --version &> /dev/null; echo $?) -ne 0 ]; then
   echo "Install Salt."
@@ -32,25 +37,40 @@ else
 fi
 
 
-
-# Todo: Confirm before delete.
 if [ $(ls "${SALT_CONFIG}" &> /dev/null; echo $?) -eq 0 ]; then
-  echo "Found existing salt configuration, delete and re-create."
-  sudo rm -rvf "${SALT_CONFIG}"
+  echo "Found an existing salt configuration in ${SALT_CONFIG}."
+
+  read -p "DO YOU WANT TO REMOVE THE EXISTING CONFIGURATION (type Y to proceed) ?" -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]
+  then
+    echo "You chose to leave the existing Salt configuration intact."
+    echo "To reset the existing configuration re-run bootstrap and choose yes instead."
+    exit 1
+  fi
 fi
-sudo mkdir -pv "${SALT_CONFIG}"
+
+echo
+
+echo "Remove existing configuration:"
+sudo rm -rvf "${SALT_CONFIG}" "${STATE_TREE_ROOT}/pillar" "${STATE_TREE_ROOT}/salt"
+
+echo
+
+echo "Create configuration directory: ${SALT_CONFIG}."
+sudo mkdir -p "${SALT_CONFIG}"
 sudo chown "${USER}":everyone "${SALT_CONFIG}"
 
-
 if test ! -d "${STATE_TREE_ROOT}"; then
-  echo "Create state tree root."
+  echo "Create state tree root directory: ${STATE_TREE_ROOT}."
   sudo mkdir -pv "${STATE_TREE_ROOT}"
   sudo chown "${USER}":everyone "${STATE_TREE_ROOT}"
 fi
 
-
+echo
 
 # Set masterless minion configuration.
+echo "Configure minion, pillars and states:"
 ln -sfv "${CURRENT_DIR}/provisioners/salt/etc/minion" "${SALT_CONFIG}/minion"
 
 # Set state tree.
@@ -61,3 +81,5 @@ ln -sfv "${CURRENT_DIR}/provisioners/salt/salt" "${STATE_TREE_ROOT}/salt"
 if test -d "${PRIVATE_PILLAR}"; then
   sudo ln -sfv "${PRIVATE_PILLAR}" "${STATE_TREE_ROOT}/pillar_private"
 fi
+
+echo "Bootstrap script finished."
