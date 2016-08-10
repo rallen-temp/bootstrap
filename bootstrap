@@ -6,7 +6,8 @@
 # We only set up a master on OS X if we are provisioning other systems with that master?
 
 CURRENT_DIR=$(pwd)
-STATE_TREE='/etc/salt'
+SALT_CONFIG='/etc/salt'
+STATE_TREE_ROOT='/srv'
 PRIVATE_PILLAR="${CURRENT_DIR}/../pillar_private"
 
 id -nG $(whoami) | grep -qw admin;
@@ -18,30 +19,45 @@ fi
 if [ $(brew --version &> /dev/null; echo $?) -ne 0 ]; then
   echo "Install Homebrew."
   /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+else
+  echo "Homebrew found."
 fi
 
 if [ $(salt --version &> /dev/null; echo $?) -ne 0 ]; then
-  echo "Install saltstack."
+  echo "Install Salt."
   brew install saltstack
+else
+  SALT_VERSION=$(salt --version)
+  echo "Found Salt already installed, version: ${SALT_VERSION}"
 fi
 
-if [ $(ls /etc/salt &> /dev/null; echo $?) -eq 0 ]; then
-  echo "Found existing salt directory, will delete ${STATE_TREE}."
-  # Todo: Confirm before delete.
-  sudo rm -dvf "${STATE_TREE}"
+
+
+# Todo: Confirm before delete.
+if [ $(ls "${SALT_CONFIG}" &> /dev/null; echo $?) -eq 0 ]; then
+  echo "Found existing salt configuration, delete and re-create."
+  sudo rm -rvf "${SALT_CONFIG}"
+fi
+sudo mkdir -pv "${SALT_CONFIG}"
+sudo chown "${USER}":everyone "${SALT_CONFIG}"
+
+
+if test ! -d "${STATE_TREE_ROOT}"; then
+  echo "Create state tree root."
+  sudo mkdir -pv "${STATE_TREE_ROOT}"
+  sudo chown "${USER}":everyone "${STATE_TREE_ROOT}"
 fi
 
-echo "Create initial Salt directories."
-sudo mkdir -pv "${STATE_TREE}"
-sudo chown "${USER}":everyone "${STATE_TREE}"
 
-# Create a masterless minion state tree.
-echo "Create state tree."
-sudo ln -sfv "${CURRENT_DIR}/provisioners/salt/etc/minion" /etc/salt/minion
-sudo ln -sfv "${CURRENT_DIR}/provisioners/salt/pillar/" /srv/pillar
-sudo ln -sfv "${CURRENT_DIR}/provisioners/salt/salt/" /srv/salt
+
+# Set masterless minion configuration.
+ln -sfv "${CURRENT_DIR}/provisioners/salt/etc/minion" "${SALT_CONFIG}/minion"
+
+# Set state tree.
+ln -sfv "${CURRENT_DIR}/provisioners/salt/pillar" "${STATE_TREE_ROOT}/pillar"
+ln -sfv "${CURRENT_DIR}/provisioners/salt/salt" "${STATE_TREE_ROOT}/salt"
 
 # Link optional private pillar if found.
 if test -d "${PRIVATE_PILLAR}"; then
-  sudo ln -sfv "${PRIVATE_PILLAR}" /srv/pillar_private
+  sudo ln -sfv "${PRIVATE_PILLAR}" "${STATE_TREE_ROOT}/pillar_private"
 fi
