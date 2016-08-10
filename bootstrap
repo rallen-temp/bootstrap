@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+# References.
+# https://docs.saltstack.com/en/latest/topics/tutorials/walkthrough_macosx.html
+
+# We only set up a master on OS X if we are provisioning other systems with that master?
+
+CURRENT_DIR=$(pwd)
+STATE_TREE='/etc/salt'
+PRIVATE_PILLAR="${CURRENT_DIR}/../pillar_private"
+
+id -nG $(whoami) | grep -qw admin;
+if test $? -ne 0; then
+  echo "In order to install Homebrew, user ${USER} must be a member of the 'admin' group. BYE."
+  exit 1
+fi
+
+if [ $(brew --version &> /dev/null; echo $?) -ne 0 ]; then
+  echo "Install Homebrew."
+  /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+fi
+
+if [ $(salt --version &> /dev/null; echo $?) -ne 0 ]; then
+  echo "Install saltstack."
+  brew install saltstack
+fi
+
+if [ $(ls /etc/salt &> /dev/null; echo $?) -eq 0 ]; then
+  echo "Found existing salt directory, will delete ${STATE_TREE}."
+  # Todo: Confirm before delete.
+  sudo rm -dvf "${STATE_TREE}"
+fi
+
+echo "Create initial Salt directories."
+sudo mkdir -pv "${STATE_TREE}"
+sudo chown "${USER}":everyone "${STATE_TREE}"
+
+# Create a masterless minion state tree.
+echo "Create state tree."
+sudo ln -sfv "${CURRENT_DIR}/provisioners/salt/etc/minion" /etc/salt/minion
+sudo ln -sfv "${CURRENT_DIR}/provisioners/salt/pillar/" /srv/pillar
+sudo ln -sfv "${CURRENT_DIR}/provisioners/salt/salt/" /srv/salt
+
+# Link optional private pillar if found.
+if test -d "${PRIVATE_PILLAR}"; then
+  sudo ln -sfv "${PRIVATE_PILLAR}" /srv/pillar_private
+fi
