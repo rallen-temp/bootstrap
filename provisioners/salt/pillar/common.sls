@@ -3,6 +3,7 @@ iterm:
   shell_integration:
     - zsh
     - bash
+
 zsh:
   omz:
     # For a list of supported themes see:
