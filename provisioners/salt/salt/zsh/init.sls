@@ -8,12 +8,9 @@ Install OMZ using insecure method:
         sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
 
 Enable OMZ plugins:
-  file.blockreplace:
+  file.line:
     - name: "/Users/{{ salt['environ.get']('USER') }}/.zshrc"
-    - marker_start: "# SALT BLOCK TOP : omz_plugins"
-    - marker_end: "# SALT BLOCK BOT : omz_plugins"
-    - content: |
-        plugins=({{ pillar['zsh']['omz']['plugins'] | join(' ') }})
+    - match: 'plugins=\([a-zA-Z0-9\-\ ]*\)'
+    - mode: Replace
+    - content: "plugins=({{ pillar['zsh']['omz']['plugins'] | join(' ') }})"
     - show_changes: True
-    - append_if_not_found: True
-
