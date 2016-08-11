@@ -8,6 +8,7 @@ homebrew:
     - aria2
     - siege
     - Lynx
+    - git-extras # https://github.com/tj/git-extras
     # Swag
     - catimg
     - fortune
