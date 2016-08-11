@@ -5,6 +5,9 @@ iterm:
     - bash
 zsh:
   omz:
+    # For a list of supported themes see:
+    # https://github.com/robbyrussell/oh-my-zsh/wiki/themes
+    theme: pygmalion
 
     # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
     # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
