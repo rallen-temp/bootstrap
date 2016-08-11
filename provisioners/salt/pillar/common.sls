@@ -1,3 +1,12 @@
+git:
+  user:
+    name: rallen-temp
+    email: rallen-temp@users.noreply.github.com
+  ignore:
+    - "*~"
+    - .DS_Store
+    - .idea
+
 iterm:
   # The following shells are supported: tcsh, zsh, bash, and fish 2.2 or later.
   shell_integration:

@@ -1,5 +1,6 @@
 base:
   '*':
+    - common
     - homebrew
     - iterm
     - zsh
