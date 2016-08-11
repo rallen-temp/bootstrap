@@ -17,3 +17,6 @@ homebrew:
     - vagrant
     - vagrant-manager
     - vmware-fusion
+
+    # Corporate communication.
+    - joinme
