@@ -8,6 +8,9 @@ homebrew:
     - aria2
     - siege
     - Lynx
+    # Swag
+    - catimg
+    - fortune
 
   # Homebrew Cask packages.
   casks:
