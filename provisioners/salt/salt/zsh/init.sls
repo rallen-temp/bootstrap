@@ -22,3 +22,12 @@ Enable your OMZ theme:
     - mode: Replace
     - content: "ZSH_THEME='{{ salt['pillar.get']('zsh:omz:theme', 'robbyrussell') }}'"
     - show_changes: True
+
+Set Homebrew Github API Token:
+  file.blockreplace:
+    - name: "/Users/{{ salt['environ.get']('USER') }}/.zshrc"
+    - marker_start: "# SALT BLOCK TOP : userenv : zshrc"
+    - marker_end: "# SALT BLOCK BOT : userenv : zshrc"
+    - content: |
+        export HOMEBREW_GITHUB_API_TOKEN='{{ pillar['userenv']['HOMEBREW_GITHUB_API_TOKEN'] }}'
+    - append_if_not_found: True
